@@ -11,30 +11,11 @@ import (
 		"strings"
 		"bufio"
 		"os"
-		"strconv"
+		"github.com/nerophon/dictdash/core"
 )
 
-type Node struct {
-	Word string
-	Edges [][]*Node
-}
 
-// Not to be used in production, only for debugging SMALL dictionaries
-func (node *Node) String() string {
-	result := "[" + node.Word + ": ["
-	for k, v := range node.Edges {
-		result = result + "" + strconv.Itoa(k) + ":["
-		for _, vv := range v {
-			result = result + vv.Word + ", "
-		}
-		result = strings.Trim(result, ", ")
-		result = result + "], "
-	}
-	result = strings.Trim(result, ", ")
-	return result + "]"
-}
-
-var dictionary map[int]map[string]*Node
+var dictionary map[int]map[string]*core.Node
 
 func main() {
 	fmt.Print("\nWelcome to Dictionary Dash!\n")
@@ -97,15 +78,9 @@ func scan(path string) {
 		fmt.Println(err)
 		return
 	}
-	scanner := bufio.NewScanner(file)
-	scanner.Split(bufio.ScanWords)
-	count := 0
-	dictionary = make(map[int]map[string]*Node)
-	for scanner.Scan() {
-		count++
-		addToDictionary(scanner.Text(), dictionary)
-	}
-	if err := scanner.Err(); err != nil {
+	var count int
+	dictionary, count, err = core.ScanAndGraph(file)
+	if err != nil {
 		fmt.Fprintln(os.Stderr, "reading input failed with error:\n", err)
 		return
 	}
@@ -116,23 +91,6 @@ func scan(path string) {
 	}
 	fmt.Println("Dictionary: ", dictionary)
 	fmt.Printf("\n")
-}
-
-// assumes dict is not nil
-func addToDictionary(word string, dict map[int]map[string]*Node) {
-	letterCount := len(word)
-	_, ok := dict[letterCount]
-	if !ok {
-		dict[letterCount] = make(map[string]*Node)
-	}
-	node := new(Node)
-	node.Word = word
-	node.Edges = make([][]*Node, letterCount)
-	for k, _ := range node.Edges {
-		node.Edges[k] = make([]*Node, 0, 26)
-		//node.Edges[k] = append(node.Edges[k], node) JUST A TEST
-	}
-	dict[letterCount][word] = node
 }
 
 func search(src string, dst string) {
