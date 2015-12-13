@@ -1,8 +1,7 @@
 /*
 For a given dictionary of words, a source word, and a destination word,
-dictdash outputs the minimum number of single-letter transformations required
+dictdash computes the minimum number of single-letter transformations required
 to go from source to destination via other words in the dictionary.
-If there is no path, an error is output.
 */
 package main
 
@@ -11,11 +10,12 @@ import (
 		"strings"
 		"bufio"
 		"os"
-		"github.com/nerophon/dictdash/core"
+		"github.com/nerophon/dictdash/grapher"
+		"github.com/nerophon/dictdash/search"
 )
 
 
-var dictionary map[int]map[string]*core.Node
+var graph map[int]map[string]*grapher.WordNode
 
 func main() {
 	fmt.Print("\nWelcome to Dictionary Dash!\n")
@@ -46,8 +46,8 @@ func commandLoop(reader *bufio.Reader) {
 	case "help":
 		fmt.Println("\n***Command List***\n")
 		fmt.Println("help\t\tshows this command list")
-		fmt.Println("scan\t\tscans a space-delimited dictionary at ./dict.txt")
-		fmt.Println("scan [path]\tscans a space-delimited dictionary at [path]")
+		fmt.Println("scan\t\tscans a whitespace-delimited dictionary at ./dict.txt")
+		fmt.Println("scan [path]\tscans a whitespace-delimited dictionary at [path]")
 		fmt.Println("search [A] [B]\tsearches for the shortest path from [A] to [B]")
 		fmt.Println("quit\t\tquits the application")
 		fmt.Println("")
@@ -63,7 +63,7 @@ func commandLoop(reader *bufio.Reader) {
 		if numFields != 3 {
 			fmt.Println("The search command requires exactly two arguments.\n")
 		} else {
-			search(fields[1], fields[2])
+			searchCmd(fields[1], fields[2])
 		}
 	default:
 		fmt.Println("Sorry, command not understood.\n")
@@ -79,22 +79,64 @@ func scan(path string) {
 		return
 	}
 	var count int
-	dictionary, count, err = core.ScanAndGraph(file)
+	graph, count, err = grapher.ScanLinkCompress(file)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "reading input failed with error:\n", err)
 		return
 	}
 	fmt.Printf("Words scanned: %d\n", count)
-	fmt.Printf("Sub-Dictionary count: %d\n", len(dictionary))
-	for k, v := range dictionary {
-		fmt.Printf("Dictionary[%d] length: %d\n", k, len(v))
+	fmt.Printf("Sub-graph count: %d\n", len(graph))
+	for k, v := range graph {
+		fmt.Printf("Sub-graph[%d] length: %d\n", k, len(v))
 	}
-	fmt.Println("Dictionary: ", dictionary)
+	if count < 100 {
+		//not suitable for large graphs:
+		fmt.Println("FULL GRAPH: ", graph)
+	}
 	fmt.Printf("\n")
 }
 
-func search(src string, dst string) {
-	fmt.Println("Sorry, command not yet implemented.\n")
+func searchCmd(src string, dst string) {
+	if graph == nil {
+		fmt.Println("No graph to search. Please scan a dictionary before searching.\n\n")
+		return
+	}
+	if len(src) != len(dst) {
+		fmt.Println("Source and destination words are of different lengths. This is outside the problem domain.\n\n")
+		return
+	}
+	srcSubGraph, ok := graph[len(src)]
+	if !ok {
+		fmt.Println("Source word not found in dictionary.\n\n")
+		return
+	}
+	srcNode, ok := srcSubGraph[src]
+	if !ok {
+		fmt.Println("Source word not found in dictionary.\n\n")
+		return
+	}
+	dstSubGraph, ok := graph[len(dst)]
+	if !ok {
+		fmt.Println("Destination word not found in dictionary.\n\n")
+		return
+	}
+	dstNode, ok := dstSubGraph[dst]
+	if !ok {
+		fmt.Println("Destination word not found in dictionary.\n\n")
+		return
+	}
+
+	path, distance, found := search.Path(search.GraphNode(srcNode), search.GraphNode(dstNode))
+	if !found {
+		fmt.Printf("No path was found between %s and %s.\n\n", src, dst)
+		return
+	}
+	fmt.Printf("The shortest path between %s and %s is %d transformations long.\n", src, dst, distance)
+	fmt.Printf("Full path:\n")
+	for k, v := range path {
+		fmt.Printf("%d: %s\n", k, v.(*grapher.WordNode).Word)
+	}
+	fmt.Printf("\n")
 }
 
 
