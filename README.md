@@ -1,8 +1,8 @@
-# dictionary dash
+# Dictionary Dash
 
-An exercise in engineering in Go.
+An engineering exercise implemented in Go.
 
-Given a dictionary and a start and end word, this program finds minimum number of single-letter transformations required to transform the start word into the end word.
+Given a dictionary and a start and end word, this program finds minimum number of single-letter transformations required to transform the start word into the end word, where each intermediate word is also in the dictionary.
 
 
 ##Prerequisites
@@ -17,12 +17,26 @@ Given a dictionary and a start and end word, this program finds minimum number o
 
 The software will be installed to the `$GOPATH/bin` directory by default.
 
-##Testing
+##Testing & Benchmarking
 
 This software includes extensive unit tests. They can be run as per standard for Go tests:
 
 1. `cd` to the source folder with test files you wish to run
 2. run `go test`
+
+Benchmarks exist for key steps in the process. These can be run from the root project directory, via the `dictdash_test.go` file. To run them, use the following standard Go benchmarking command:
+
+```
+go test -bench=.
+```
+
+The scanning of the 200k+ words sample dictionary takes several seconds, so if you wish to get a statistically significant benchmark for it please specify the Scan function and use the `-benchtime` flag with a time greater than 1 second, for instance:
+
+```
+go test -bench=BenchmarkScan -benchtime=20s
+```
+
+Please be aware that this kind of benchmark can put strain on a computer's CPU resources and should be run with care.
 
 ##Launching
 
@@ -84,6 +98,18 @@ Full path:
 29: lather
 ```
 
+##Custom Dictionaries
+
+This exercise has been implemented with several assumptions in mind concerning acceptable format for the scanned dictionary. To guarantee reasonable performance, validation of this format is not performed by this application; therefore it is up to the user to ensure the dictionary is properly formatted if acceptable results from this application are desired.
+
+The dictionary should be formatted as a whitespace-delimited list of words containing only lowercase latin utf8 characters from a to z.
+
+In this case, whitespace is defined as per the Go library function `unicode.IsSpace()`, described here:
+https://golang.org/pkg/unicode/#IsSpace
+
+##Performance
+
+Emphasis was placed upon getting good performance from the `Search` functionality, under the assumption that the dictionary would not need to be reloaded often. Due to time constraints, concurrency was only used in the most obvious locations (`grapher.link()` and `grapher.compress()`). I believe it is possible to improve the performance of both the `grapher.scan()` and `search.path()` functions using concurrency, but doing so would be non-trivial and require further research.
 
 
 [0]: https://golang.org/dl/

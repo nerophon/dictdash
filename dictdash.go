@@ -15,7 +15,7 @@ import (
 )
 
 
-var graph map[int]map[string]*grapher.WordNode
+var graph grapher.WordGraph
 
 func main() {
 	fmt.Print("\nWelcome to Dictionary Dash!\n")

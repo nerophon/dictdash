@@ -65,28 +65,37 @@ func addToGraph(word string, graph WordGraph) (added bool) {
 // panics if graph == nil
 func link(graph WordGraph) {
 	// opportunity for concurrency here
+	done := make(chan bool, len(graph))
 	for letterCount, subGraph := range graph {
-		for word, node := range subGraph {
-			for letter := 0; letter < letterCount; letter++ {
-				for replacement := 0; replacement < 26; replacement++ {
-					searchWord := replaceAtIndex(word, alphabet[replacement], letter)
-					if searchWord == word {
-						continue // self should remain nil
-					}
-					if node.Edges[letter][replacement] != nil {
-						continue // mirror, no need to lookup
-					}
-					if connectedNode, ok := subGraph[searchWord]; ok {
-						original := word[letter]
-						originalZeroIndexed := original - decodeOffset
-						node.Edges[letter][replacement] = connectedNode
-						connectedNode.Edges[letter][originalZeroIndexed] = node
-					}
+		go linkSubGraph(letterCount, subGraph, done)
+	}
+	for i := 0; i < len(graph); i++ {
+		<-done
+	}
+	return
+}
+
+func linkSubGraph(letterCount int, subGraph map[string]*WordNode, done chan bool) {
+	for word, node := range subGraph {
+		for letter := 0; letter < letterCount; letter++ {
+			for replacement := 0; replacement < 26; replacement++ {
+				searchWord := replaceAtIndex(word, alphabet[replacement], letter)
+				if searchWord == word {
+					continue // self should remain nil
+				}
+				if node.Edges[letter][replacement] != nil {
+					continue // mirror, no need to lookup
+				}
+				if connectedNode, ok := subGraph[searchWord]; ok {
+					original := word[letter]
+					originalZeroIndexed := original - decodeOffset
+					node.Edges[letter][replacement] = connectedNode
+					connectedNode.Edges[letter][originalZeroIndexed] = node
 				}
 			}
 		}
 	}
-	return
+	done <- true
 }
 
 // panics if i > len(in)
@@ -99,21 +108,30 @@ func replaceAtIndex(in string, b byte, i int) string {
 // panics if graph == nil
 func compress(graph WordGraph) {
 	// opportunity for concurrency here
+	done := make(chan bool, len(graph))
 	for letterCount, subGraph := range graph {
-		for _, node := range subGraph {
-			list := list.New()
-			for letter := 0; letter < letterCount; letter++ {
-				for _, edge := range node.Edges[letter] {
-					if edge != nil {
-						list.PushBack(edge)
-					}
-				}
-			}
-			node.Neighbours = listToNodeSlice(list)
-			node.Edges = nil // TODO check if memory leak
-		}
+		go compressSubGraph(letterCount, subGraph, done)
+	}
+	for i := 0; i < len(graph); i++ {
+		<-done
 	}
 	return
+}
+
+func compressSubGraph (letterCount int, subGraph map[string]*WordNode, done chan bool) {
+	for _, node := range subGraph {
+		list := list.New()
+		for letter := 0; letter < letterCount; letter++ {
+			for _, edge := range node.Edges[letter] {
+				if edge != nil {
+					list.PushBack(edge)
+				}
+			}
+		}
+		node.Neighbours = listToNodeSlice(list)
+		node.Edges = nil
+	}
+	done <- true
 }
 
 // panics if l is null or contains non-*WordNode values
