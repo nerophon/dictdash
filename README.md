@@ -2,7 +2,7 @@
 
 An engineering exercise implemented in Go.
 
-Given a dictionary and a start and end word, this program finds minimum number of single-letter transformations required to transform the start word into the end word, where each intermediate word is also in the dictionary.
+Given a dictionary and a start and end word, this program finds the minimum number of single-letter transformations required to transform the start word into the end word, where each intermediate word is also in the dictionary.
 
 This entire project can be cloned directly from github via:
 https://github.com/nerophon/dictdash
