@@ -7,7 +7,6 @@ Given a dictionary and a start and end word, this program finds the minimum numb
 This entire project can be cloned directly from github via:
 https://github.com/nerophon/dictdash
 
-<br>
 ## Prerequisites
 
 1. The [__Go Programming Langugage__][0] must be installed to build, test, and install this software.
