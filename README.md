@@ -8,11 +8,11 @@ This entire project can be cloned directly from github via:
 https://github.com/nerophon/dictdash
 
 <br>
-##Prerequisites
+## Prerequisites
 
 1. The [__Go Programming Langugage__][0] must be installed to build, test, and install this software.
 
-##Installation
+## Installation
 
 1. Clone this project.
 2. `cd` to the project directory
@@ -20,7 +20,7 @@ https://github.com/nerophon/dictdash
 
 The software will be installed to the `$GOPATH/bin` directory by default.
 
-##Testing & Benchmarking
+## Testing & Benchmarking
 
 This software includes extensive unit tests. They can be run as per standard for Go tests:
 
@@ -41,12 +41,12 @@ go test -bench=BenchmarkScan -benchtime=20s
 
 Please be aware that this kind of benchmark can put strain on a computer's CPU resources and should be run with care.
 
-##Launching
+## Launching
 
 1. `cd` to the install directory, usually `$GOPATH/bin`
 2. run `./dictdash`
 
-##Operation
+## Operation
 
 It is recommended that users copy the sample dictionary `dict.txt` found in the root project directory into the `$GOPATH/bin` directory (or wherever the executable is located if elsewhere).
 
@@ -101,7 +101,7 @@ Full path:
 29: lather
 ```
 
-##Custom Dictionaries
+## Custom Dictionaries
 
 This exercise has been implemented with several assumptions in mind concerning acceptable format for the scanned dictionary. To guarantee reasonable performance, validation of this format is not performed by this application; therefore it is up to the user to ensure the dictionary is properly formatted if acceptable results from this application are desired.
 
@@ -110,7 +110,7 @@ The dictionary should be formatted as a whitespace-delimited list of words conta
 In this case, whitespace is defined as per the Go library function `unicode.IsSpace()`, described here:
 https://golang.org/pkg/unicode/#IsSpace
 
-##Performance
+## Performance
 
 Emphasis was placed upon getting good performance from the `Search` functionality, under the assumption that the dictionary would not need to be reloaded often. Due to time constraints, concurrency was only used in the most obvious locations (`grapher.link()` and `grapher.compress()`). I believe it is possible to improve the performance of both the `grapher.scan()` and `search.path()` functions using concurrency, but doing so would be non-trivial and require further research.
 
